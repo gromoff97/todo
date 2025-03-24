@@ -21,7 +21,9 @@ Additionally, here is a message from HR that may be useful:
 
 # How to run the tests?
 
-1. Ensure Docker is installed and running.
+1. Ensure that
+   - Java is installed (warning: java version should be compatible with Gradle 8.13. See [compatibility matrix](https://docs.gradle.org/current/userguide/compatibility.html))
+   - Docker engine is installed and running.
 2. Clone this repository.
 3. In the project directory, execute the following command:
 
