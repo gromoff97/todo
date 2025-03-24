@@ -11,32 +11,29 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.withPollDelay
 import org.awaitility.kotlin.withPollInterval
+import utils.general.asJsonListOf
+import ws.models.TodoWebSocketMessage
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
-class WsAdvancedListener : WebSocketListener() {
+class WsAdvancedListener : WebSocketListener(), TodoUpdatesAwait {
     private val messages = ConcurrentLinkedQueue<String>()
 
     override fun onMessage(webSocket: WebSocket, text: String) {
-        super.onMessage(webSocket, text)
         logger.debug { "Received Message: '$text'" }
         messages.add(text)
     }
 
-    private fun assertMessagesList(assertBody: Assert<List<String>>.() -> Unit) {
-        assertThat(messages.toList()).all(assertBody)
-    }
+    fun clearMessages() = messages.clear()
 
-    fun awaitMessagesList(
-        pollInterval: Duration = 200.milliseconds,
-        delay: Duration = 1.seconds,
-        atMost: Duration = 3.seconds,
-        assertBody: Assert<List<String>>.() -> Unit
+    override fun awaitTodoMessagesList(
+        pollInterval: Duration,
+        delay: Duration,
+        atMost: Duration,
+        assertBody: Assert<List<TodoWebSocketMessage>>.() -> Unit
     ) {
         await withPollInterval pollInterval withPollDelay delay atMost atMost untilAsserted {
-            assertMessagesList(assertBody)
+            assertThat(messages.toList()).asJsonListOf(TodoWebSocketMessage::class).all(assertBody)
         }
     }
 

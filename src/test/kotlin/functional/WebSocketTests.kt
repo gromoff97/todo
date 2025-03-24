@@ -12,23 +12,21 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import utils.general.RandomPojoProvider.randomValidTodoCreationRequest
-import utils.general.asJsonListOf
 import utils.general.containsExactlyElementsOf
 import utils.general.hasUnsuccessfulStatusCode
 import utils.general.invoke
 import utils.general.toWebSocketMessage
-import ws.TodoWsListener
-import ws.TodoWsListenerResolver
-import ws.WsAdvancedListener
-import ws.models.TodoWebSocketMessage
+import ws.TodoUpdatesAwait
+import ws.WebSocketTodoUpdatesAwait
+import ws.WebsocketTodoUpdatesExtension
 
-@ExtendWith(TodoWsListenerResolver::class)
+@ExtendWith(WebsocketTodoUpdatesExtension::class)
 @DisplayName("WebSocket testing")
 class WebSocketTests : BaseTests() {
 
     @Test
     @DisplayName("Websocket end-to-end test")
-    fun `websocket is related to todo creation only`(@TodoWsListener wsListener: WsAdvancedListener) {
+    fun `websocket is related to todo creation only`(@WebSocketTodoUpdatesAwait todoUpdatesAwait: TodoUpdatesAwait) {
         val firstCreationRequest = "Successful API calls provocation" {
             randomValidTodoCreationRequest().also { req ->
                 postTodo(req)
@@ -49,8 +47,8 @@ class WebSocketTests : BaseTests() {
 
         "Make sure there are only two websocket's messages related to TODO creation" {
             val expectedMessages = listOf(firstCreationRequest, secondCreationRequest).map { it.toWebSocketMessage() }
-            wsListener.awaitMessagesList {
-                asJsonListOf(TodoWebSocketMessage::class).containsExactlyElementsOf(expectedMessages)
+            todoUpdatesAwait.awaitTodoMessagesList {
+                containsExactlyElementsOf(expectedMessages)
             }
         }
     }
